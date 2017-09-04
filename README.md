@@ -9,6 +9,8 @@ Author Zhili
 License: MIT License (See README.MD and LICENSE)                                                                                                                                                         
                                                                                                                                                                                                
 ## usage
+Download the qsubshcom, and put it into your $PATH, e.g. $HOME/bin, chmod 700 qsubshcom
+
 qsubshcom command["one command |; two command"] num_CPU[1] total_memory[2G] task_name wait_time[1:00:00] other_params
 
 ### command
