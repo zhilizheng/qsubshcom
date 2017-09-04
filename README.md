@@ -1,19 +1,26 @@
 # qsubshcom
 
-The job submitter for PBS Pro, Torque and SGE. qsubshcom will determine the cluster type automatically, and call the correct qsub command.
+The job submitter for PBS Pro (IMB), Torque (Tinaroo, Flashlite) and SGE (QBI). 
 
-It can run across all of these cluster, you don't have rewrite the script again and again in order to run on different cluster.
+qsubshcom will determine the cluster type automatically, and call the correct qsub command. 
+
+It can run across all of these cluster, you don't have to rewrite the script again and again in order to run on different cluster.
      
 Author: Zhili
 
-License: MIT License (See README.MD and LICENSE)                                                                                                            
+License: MIT License (See README.md and LICENSE)
+
+Note: the original qsubshcom script referenced a little portion of code from QBI IT. However, the call routines are rewritted totally. You shall pay attention to the parameter changes, and much more robust enhancement on the job dependency and cluster type dedution.
+
+If you find some bugs, you can create an issue here. I will fix it if I have time. 
+
 ## usage
 Download the qsubshcom, and put it into your $PATH, e.g. $HOME/bin, chmod 700 qsubshcom
 
 qsubshcom command["one command |; two command"] num_CPU[1] total_memory[2G] task_name wait_time[1:00:00] other_params
 
 example:
-```
+```{bash}
 # This will echo hello world from 1 to 5 into test1.txt test2.txt ... in 5 jobs, each job with one cpu, 1GB memory and wall-time 5 seconds
 qsubshcom "echo \"hello world {TASK_ID}\" >> test{TASK_ID}.txt" 1 1G test_hello 00:00:05 "-array=1-5"
 
@@ -22,14 +29,28 @@ command="echo hello {TASK_ID}"
 hello_pid=`qsubshcom "$command" 1 1G test_hello2 00:00:05 "-array=1-5"`
 # run test_hello3, wait until test_hello2 finished
 qsubshcom "echo hello3" 1 1G test_hello3 00:00:05 "-wait=$hello_pid"
+
+# the job running logs are in ./job_reports
+# the submit log are in ./qsub_TIME.log
 ```
 
 ### command
-{TASK_ID} for job array index, we'd like to use "" to surround the command                                                                                                          
-* call qsubshcom directly, then the $ should be escaped by \\$;
-* if call it in `` then $ shall be escaped by double \\\\$;
-* other special vars are not affected, just single \ ;                                                                              
-* if we store the variable in a temp variable first, just single \ to escape;                                                                                                                  
+We'd like to use "" to surround the command. 
+
+We can specify the command directly:  qsubshcom "plink --bfile ..." ...
+
+Or save the command in a temp variable:
+```{bash}
+temp_command="gcta64 --bfile test --make-grm --out test_grm"
+qsubshcom "$temp_command" 1 1G test_grm 10:00:00 ""
+```
+
+If you would like to pass some special character into the job scripts directly, they shall be escaped, otherwise it will interpret on the head node, not the working nodes. such as $  " . Store the variable in a temp variable first, both $ and other special vars shall use just single \ to escape;
+
+```{bash}
+temp_command="awk '{print \$1, \$2} test.txt > test2.txt"
+qsubshcom "$temp_command" 1 1G test_awk 00:00:05 ""
+```
 ### memory
 It will be rounded up into larger one in Torque and SGE if MEM/num_CPU is not integer, such as 
 ```
