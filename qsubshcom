@@ -129,6 +129,7 @@ if [ "$GE" == "TOR" ]; then
 
     echo "#PBS -V" >> $scriptname
     echo "#PBS -l nodes=1:ppn=$2${ntype},pmem=$mem_core$mem_unit" >> $scriptname
+    # remove this if you are not from CNSG
     echo "#PBS -A UQ-IMB-CNSG" >> $scriptname
     if [ -n "$5" ];then
         echo "#PBS -l walltime=$5" >> $scriptname
