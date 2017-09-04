@@ -86,7 +86,7 @@ Here is a exmaple to run GWAS with qsubshcom
 geno=A
 # GRM
 grm_pid=`qsubshcom "gcta64 --bfile $geno --chr {TASK_ID} --make-grm --out geno_grm_chr{TASK_ID} --thread-num 5" 5 10G grm 5:00:00 "-array=1-22"` 
-# merge GRM
+# merge GRM. merge_pid need further rewrite to get rid of the .grm.bin and .grm.N.bin. (pipe with sed unique)
 merge_pid=`qsubshcom "ls -1 geno_grm_chr* > mgrm.txt" 1 1G list 00:00:05 "-wait=$grm_pid"`
 merge_GRM=`qsubshcom "gcta64 --mgrm mgrm.txt --make-grm --out geno_grm" 1 10G merge_grm 1:00:00 "-wait=$merge_pid"`
 
