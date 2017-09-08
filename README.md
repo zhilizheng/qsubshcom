@@ -62,10 +62,10 @@ Note: the memory limitation here is virtual memory enforced by some cluster engi
 
 Just use 1G, 10M without B, some cluster does not support GB or MB.                                                                       
 ### other_params:                                                                                                                                                                                
-* -wait=JOB1:JOB2:JOB3 wait these jobs finished                                                                                                                                                
+* -wait=JOB1:JOB2:JOB3 wait these jobs finished. qsubshcom will determine these JOB ID exist or not.                                                                                                                                             
 * -array=1-100:2   create a job array that run task 1 3 5 7 ... 99                                                                                                                             
 * -log=log_name, log the job submission into log file. default is qsub_time.log                                                                                                                
-* -ntype=node_type, specify the node type into node_type (Torque only)                                                                                                                         
+* -ntype=node_type, specify the node type into node_type (Torque only, Tinaroo: -ntype=Special to use group special queue)                                                                                                                         
 * -queue=queue_type. Specify the queue type                                                                                                                                                    
 * You can put any other cluster engine supported parameters here, it will pass directly into the qsub command. e.g. -l host=host1:host2                                                        
 Note: these parameters specified by yourself (such as -l host) may not be supported in other cluster engine. We shall avoid using this types of parameters
