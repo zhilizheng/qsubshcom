@@ -19,7 +19,7 @@ Download the qsubshcom, and put it into your $PATH, e.g. $HOME/bin, chmod 700 qs
 
 qsubshcom command["one command |; two command"] num_CPU[1] total_memory[2G] task_name wait_time[1:00:00] other_params
 
-If you lots of old codes already, you can run it: qsubshcom "bash Your_script.sh" 2 4G you_task_name 10:00:00 ""    .  qsubshcom will submit the command in Your_script.sh to the computing node with 2 CPU core, 4GB memory (in total, not per CPU core), and a walltime of 10 hours.  The PBS or SGE commands in that file will be ignored, but the {TASK_ID} inline variables in your_script.sh will not be relpaced by array job ID correctly. 
+If you lots of old codes already, you can run it: qsubshcom "bash Your_script.sh" 2 4G you_task_name 10:00:00 ""    .  qsubshcom will submit the command in Your_script.sh to the computing node with 2 CPU core, 4GB memory (in total, not per CPU core), and a walltime of 10 hours.  The PBS or SGE commands in Your_script.sh will be ignored (such as ${PBS_ARRAY_INDEX}), so you'd better remove the cluster dependent variables, it will be replaced by empty unexpectly!!! If you run the job array in your script, you can relace the ${PBS_ARRY_INDEX} to ${TASK_ID}, it will works on all cluster. 
 
 example:
 ```{bash}
@@ -35,6 +35,9 @@ qsubshcom "echo hello3" 1 1G test_hello3 00:00:05 "-wait=$hello_pid"
 # the job running logs are in ./job_reports
 # the submit log are in ./qsub_TIME.log
 ```
+
+### update:
+Sep 18, 2017:  update ${TASK_ID} that can be find in the script run by qsubshcom "bash your_scrip.sh"
 
 ### command
 We'd like to use "" to surround the command. 
