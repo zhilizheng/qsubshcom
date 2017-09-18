@@ -19,6 +19,8 @@ Download the qsubshcom, and put it into your $PATH, e.g. $HOME/bin, chmod 700 qs
 
 qsubshcom command["one command |; two command"] num_CPU[1] total_memory[2G] task_name wait_time[1:00:00] other_params
 
+If you lots of old codes already, you can run it: qsubshcom "bash Your_script.sh" 2 4G you_task_name 10:00:00 ""    .  qsubshcom will submit the command in Your_script.sh to the computing node with 2 CPU core, 4GB memory (in total, not per CPU core), and a walltime of 10 hours.  The PBS or SGE commands in that file will be ignored, but the {TASK_ID} inline variables in your_script.sh will not be relpaced by array job ID correctly. 
+
 example:
 ```{bash}
 # This will echo hello world from 1 to 5 into test1.txt test2.txt ... in 5 jobs, each job with one cpu, 1GB memory and wall-time 5 seconds
