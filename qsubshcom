@@ -93,7 +93,7 @@ if [ "$GE" == "SGE" ]; then
     echo "#$ -V" >> $scriptname
     echo "#$ -pe onehost $2" >> $scriptname
     echo "#$ -l h_vmem=${mem_core}${mem_unit}" >> $scriptname
-    echo 'TASK_ID=${SGE_TASK_ID}' >> $scriptname
+    echo 'export TASK_ID=${SGE_TASK_ID}' >> $scriptname
     #echo "#$ -l time=$5" >> $scriptname
 fi
 
@@ -117,7 +117,7 @@ if [ "$GE" == "PBS" ]; then
         echo "#PBS -q $queue" >> $scriptname
     fi
     echo 'cd $PBS_O_WORKDIR' >> $scriptname
-    echo 'TASK_ID=${PBS_ARRAY_INDEX}' >> $scriptname
+    echo 'export TASK_ID=${PBS_ARRAY_INDEX}' >> $scriptname
 fi
 
 if [ "$GE" == "TOR" ]; then
@@ -138,7 +138,7 @@ if [ "$GE" == "TOR" ]; then
         echo "#PBS -q $queue" >> $scriptname
     fi
     echo 'cd $PBS_O_WORKDIR' >> $scriptname
-    echo 'TASK_ID=${PBS_ARRAYID}' >> $scriptname
+    echo 'export TASK_ID=${PBS_ARRAYID}' >> $scriptname
 fi
 
 # dump the self content
