@@ -55,8 +55,17 @@ if ps aux | grep -q [s]ge_qmaster; then
 fi
 
 if [ -z "$GE" ]; then
-    echo "Sorry, can not find the grid engine"
-    exit 1
+    qsub_out=`qsub --version`
+    if [ -z "$qsub_out" ]; then
+        echo "Sorry, can not find the grid engine"
+        exit 1
+    fi
+    pbs_flag=`echo $qsub_out | grep pbs`
+    if [ -z "$pbs_flag" ]; then
+        echo "Sorry, we can't recognize the grid enine"
+        exit 1
+    fi
+    GE="PBS"
 fi
 
 mem_raw="$3"
