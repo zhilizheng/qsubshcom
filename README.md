@@ -37,7 +37,9 @@ qsubshcom "echo hello3" 1 1G test_hello3 00:00:05 "-wait=$hello_pid"
 ```
 
 ### update:
-Sep 18, 2017:  update ${TASK_ID} that can be find in the script run by qsubshcom "bash your_scrip.sh"
+Sep 21, 2017: Add TRI cluster support
+
+Sep 18, 2017:  update ${TASK_ID} that can be find in the script run by qsubshcom "bash your_scrip.sh" or qsubshcom "sh your_script.sh"...
 
 ### command
 We'd like to use "" to surround the command. 
