@@ -14,6 +14,11 @@ Note: the original qsubshcom script referenced a little portion of code from QBI
 
 If you find some bugs, you can create an issue here. I will fix it if I have time. 
 
+### update:
+Sep 21, 2017: Add TRI cluster support
+
+Sep 18, 2017:  update ${TASK_ID} that can be find in the script run by qsubshcom "bash your_scrip.sh" or qsubshcom "sh your_script.sh"...
+
 ## usage
 Download the qsubshcom, and put it into your $PATH, e.g. $HOME/bin, chmod 700 qsubshcom
 
@@ -35,11 +40,6 @@ qsubshcom "echo hello3" 1 1G test_hello3 00:00:05 "-wait=$hello_pid"
 # the job running logs are in ./job_reports
 # the submit log are in ./qsub_TIME.log
 ```
-
-### update:
-Sep 21, 2017: Add TRI cluster support
-
-Sep 18, 2017:  update ${TASK_ID} that can be find in the script run by qsubshcom "bash your_scrip.sh" or qsubshcom "sh your_script.sh"...
 
 ### command
 We'd like to use "" to surround the command. 
