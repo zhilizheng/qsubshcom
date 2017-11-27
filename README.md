@@ -15,6 +15,8 @@ Note: the original qsubshcom script referenced a little portion of code from QBI
 If you find some bugs, you can create an issue here. I will fix it if I have time. 
 
 ### update:
+Nov 27, 2017: Change the manner to determine the grid engine, as some cluster has multiple grid engine; remove the default account (UQ-IMB-***), we should add -acct=ACCOUNT_NAME to specify, as it is different in each cluster; -ntype can't work properly, it may have been obsoleted.
+
 Sep 21, 2017: Add TRI cluster support
 
 Sep 18, 2017:  update ${TASK_ID} that can be find in the script run by qsubshcom "bash your_scrip.sh" or qsubshcom "sh your_script.sh"...
@@ -72,8 +74,10 @@ Just use 1G, 10M without B, some cluster does not support GB or MB.
 * -wait=JOB1:JOB2:JOB3 wait these jobs finished. qsubshcom will determine these JOB ID exist or not.                                                                                                                                             
 * -array=1-100:2   create a job array that run task 1 3 5 7 ... 99                                                                                                                             
 * -log=log_name, log the job submission into log file. default is qsub_time.log                                                                                                                
-* -ntype=node_type, specify the node type into node_type (Torque only, Tinaroo: -ntype=Special to use group special queue)                                                                                                                         
+* -ntype=node_type, specify the node type into node_type (Torque only, Tinaroo: -ntype=Special to use group special queue). Note: this flag can't work in current cluster setup.                                                                                                                         
 * -queue=queue_type. Specify the queue type                                                                                                                                                    
+* -acct=ACCOUNT_NAME. Specify the account, equal to "#PBS -A ACCOUNT_NAME"
+
 * You can put any other cluster engine supported parameters here, it will pass directly into the qsub command. e.g. -l host=host1:host2                                                        
 Note: these parameters specified by yourself (such as -l host) may not be supported in other cluster engine. We shall avoid using this types of parameters
 

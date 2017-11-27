@@ -17,7 +17,8 @@
 # -wait=JOB1:JOB2:JOB3 wait these jobs finished
 # -array=1-100:2   create a job array that run task 1 3 5 7 ... 99
 # -log=log_name, log the job submission into log file. default is qsub_time.log
-# -ntype=node_type, specify the node type into node_type (Torque only)
+# -ntype=node_type, specify the node type into node_type (Torque only), currently not work
+# -acct=account_name, specify the account name
 # -queue=queue type. Specify the queue type
 # You can put any other cluster engine supported parameters here, it will pass directly into the qsub command. e.g. -l host=host1:host2
 # Note: these parameters may not support in other cluster engine.
@@ -41,31 +42,27 @@ mkdir -p ./job_reports
 today=`date +%Y.%m.%d_%H.%M.%S`
 todayLOG=`date +%Y.%m.%d`
 
-GE=""
-if ps aux | grep -q [p]bs_sched; then 
-    GE="PBS"; 
-fi
+GE=`sed -nr 's/^.*-ge=(\S*)\s?.*$/\1/p' <<< $6`
+if [ -z "$GE" ]; then
+    pbs_file=`command -v qorder`
+    if [[ -n "$pbs_file" ]]; then
+        pbs_folder=`dirname $pbs_file`
+        GE="PBS"
+        if [[ -f "$pbs_folder/qchkpt" ]]; then
+            GE="TOR"
+        fi
+    fi
 
-if ps aux | grep -q [t]rqauthd; then 
-    GE="TOR"; 
-fi
-
-if ps aux | grep -q [s]ge_qmaster; then 
-    GE="SGE"; 
+    ge_file=`command -v qsh`
+    if [[ -n "$ge_file" ]]; then
+        GE="SGE"
+    fi
 fi
 
 if [ -z "$GE" ]; then
-    qsub_out=`qsub --version`
-    if [ -z "$qsub_out" ]; then
-        echo "Sorry, can not find the grid engine"
-        exit 1
-    fi
-    pbs_flag=`echo $qsub_out | grep pbs`
-    if [ -z "$pbs_flag" ]; then
-        echo "Sorry, we can't recognize the grid enine"
-        exit 1
-    fi
-    GE="PBS"
+    echo "Sorry, we can't recognize the grid engine"
+    echo "You can use -ge=TOR|SGE|PBS in the 6th parameter to specify"
+    exit 1
 fi
 
 mem_raw="$3"
@@ -87,10 +84,12 @@ mem_core=`bc <<< "($mem + $2 - 1)/$2"`
 
 ntype=`sed -nr 's/^.*-ntype=(\S*)\s?.*$/\1/p' <<< $6`
 if [[ -n "$ntype" ]]; then
-    ntype=":$ntype"
+    ntype=":NodeType=$ntype"
 fi
 
 queue=`sed -nr 's/^.*-queue=(\S*)\s?.*$/\1/p' <<< $6`
+
+account=`sed -nr 's/^.*-acct=(\S*)\s?.*$/\1/p' <<< $6`
 
 echo '#!/bin/bash' > $scriptname
 if [ "$GE" == "SGE" ]; then
@@ -106,10 +105,24 @@ if [ "$GE" == "SGE" ]; then
     #echo "#$ -l time=$5" >> $scriptname
 fi
 
-if [ "$GE" == "PBS" ]; then
+if [ "$GE" == "PBS" ] || [ "$GE" == "TOR" ]; then
     echo "#PBS -N ${name}" >> $scriptname
     echo "#PBS -S /bin/bash" >> $scriptname
     #echo "#PBS -j oe" >> $scriptname
+    echo "#PBS -V" >> $scriptname
+    echo "#PBS -l select=1:ncpus=$2${ntype}:mem=${mem}${mem_unit}" >> $scriptname
+    if [ -n "$5" ];then
+        echo "#PBS -l walltime=$5" >> $scriptname
+    fi
+    if [[ -n "$queue" ]]; then
+        echo "#PBS -q $queue" >> $scriptname
+    fi
+    if [[ -n "$account" ]]; then
+        echo "#PBS -A $account" >> $scriptname
+    fi
+fi
+
+if [ "$GE" == "PBS" ]; then
     if [[ "$6" =~ ^.*-array.*$ ]]; then
         echo "#PBS -o ./job_reports/${name}_${today}_A^array_index^.log" >> $scriptname
         echo "#PBS -e ./job_reports/${name}_${today}_A^array_index^.err" >> $scriptname
@@ -117,40 +130,19 @@ if [ "$GE" == "PBS" ]; then
         echo "#PBS -o ./job_reports/${name}_${today}.log" >> $scriptname
         echo "#PBS -e ./job_reports/${name}_${today}.err" >> $scriptname
     fi
-    echo "#PBS -V" >> $scriptname
-    echo "#PBS -l nodes=1:ppn=$2${ntype},mem=${mem}${mem_unit}" >> $scriptname
-    if [ -n "$5" ];then
-        echo "#PBS -l walltime=$5" >> $scriptname
-    fi
-    if [[ -n "$queue" ]]; then
-        echo "#PBS -q $queue" >> $scriptname
-    fi
-    echo 'cd $PBS_O_WORKDIR' >> $scriptname
-    echo 'export TASK_ID=${PBS_ARRAY_INDEX}' >> $scriptname
+    #echo "#PBS -l nodes=1:ppn=$2${ntype},mem=${mem}${mem_unit}" >> $scriptname
 fi
 
 if [ "$GE" == "TOR" ]; then
-    echo "#PBS -N ${name}" >> $scriptname
-    echo "#PBS -S /bin/bash" >> $scriptname
-    #echo "#PBS -j oe" >> $scriptname
     echo "#PBS -o ./job_reports/${name}_${today}.log" >> $scriptname
     echo "#PBS -e ./job_reports/${name}_${today}.err" >> $scriptname
-
-    echo "#PBS -V" >> $scriptname
-    echo "#PBS -l nodes=1:ppn=$2${ntype},pmem=$mem_core$mem_unit" >> $scriptname
-    # remove this if you are not from CNSG
-    echo "#PBS -A UQ-IMB-CNSG" >> $scriptname
-    if [ -n "$5" ];then
-        echo "#PBS -l walltime=$5" >> $scriptname
-    fi
-    if [[ -n "$queue" ]]; then
-        echo "#PBS -q $queue" >> $scriptname
-    fi
-    echo 'cd $PBS_O_WORKDIR' >> $scriptname
-    echo 'export TASK_ID=${PBS_ARRAYID}' >> $scriptname
+    #echo "#PBS -l nodes=1:ppn=$2${ntype},pmem=$mem_core$mem_unit" >> $scriptname
 fi
 
-# dump the self content
+if [ "$GE" == "PBS" ] || [ "$GE" == "TOR" ]; then
+    echo 'cd $PBS_O_WORKDIR' >> $scriptname
+    echo 'export TASK_ID=${PBS_ARRAY_INDEX}' >> $scriptname
+fi
 
 echo -e "cat << 'EOF' \n PARAM to here: $@ \nEOF" >> $scriptname
 echo 'echo ""' >> $scriptname
@@ -170,7 +162,7 @@ if [ -n $"$6" ]; then
     wait_jb=`sed -nr 's/^.*-wait=(\S*)\s?.*$/\1/p' <<< $raw_param`
     arrays=`sed -nr 's/^.*-array=(\S*)\s?.*$/\1/p' <<< $raw_param`
     log=`sed -nr 's/^.*-log=(\S*)\s?.*$/\1/p' <<< $raw_param`
-    remain_param=`echo $raw_param | sed 's/-ge=\S*//g' | sed 's/-log=\S*//g' | sed 's/-wait=\S*//g' | sed 's/-array=\S*//g' | sed 's/-ntype=\S*//g' | sed 's/-queue=\S*//g'`
+    remain_param=`echo $raw_param | sed 's/-ge=\S*//g' | sed 's/-log=\S*//g' | sed 's/-wait=\S*//g' | sed 's/-array=\S*//g' | sed 's/-ntype=\S*//g' | sed 's/-queue=\S*//g' | sed 's/-acct=\S*//g'`
     if [ "$GE" == "PBS" ];then
         if [[ -n "$arrays" ]];then
             params="-J $arrays $params";
