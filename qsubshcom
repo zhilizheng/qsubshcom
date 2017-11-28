@@ -42,7 +42,9 @@ mkdir -p ./job_reports
 today=`date +%Y.%m.%d_%H.%M.%S`
 todayLOG=`date +%Y.%m.%d`
 
-GE=`sed -nr 's/^.*-ge=(\S*)\s?.*$/\1/p' <<< $6`
+additions="$6 ${QSUBSHCOM_EXTRAS}"
+
+GE=`sed -nr 's/^.*-ge=(\S*)\s?.*$/\1/p' <<< $additions`
 if [ -z "$GE" ]; then
     pbs_file=`command -v qorder`
     if [[ -n "$pbs_file" ]]; then
@@ -82,14 +84,14 @@ fi
 
 mem_core=`bc <<< "($mem + $2 - 1)/$2"`
 
-ntype=`sed -nr 's/^.*-ntype=(\S*)\s?.*$/\1/p' <<< $6`
+ntype=`sed -nr 's/^.*-ntype=(\S*)\s?.*$/\1/p' <<< $additions`
 if [[ -n "$ntype" ]]; then
     ntype=":NodeType=$ntype"
 fi
 
-queue=`sed -nr 's/^.*-queue=(\S*)\s?.*$/\1/p' <<< $6`
+queue=`sed -nr 's/^.*-queue=(\S*)\s?.*$/\1/p' <<< $additions`
 
-account=`sed -nr 's/^.*-acct=(\S*)\s?.*$/\1/p' <<< $6`
+account=`sed -nr 's/^.*-acct=(\S*)\s?.*$/\1/p' <<< $additions`
 
 echo '#!/bin/bash' > $scriptname
 if [ "$GE" == "SGE" ]; then
@@ -123,7 +125,7 @@ if [ "$GE" == "PBS" ] || [ "$GE" == "TOR" ]; then
 fi
 
 if [ "$GE" == "PBS" ]; then
-    if [[ "$6" =~ ^.*-array.*$ ]]; then
+    if [[ "$additions" =~ ^.*-array.*$ ]]; then
         echo "#PBS -o ./job_reports/${name}_${today}_A^array_index^.log" >> $scriptname
         echo "#PBS -e ./job_reports/${name}_${today}_A^array_index^.err" >> $scriptname
     else
@@ -157,8 +159,8 @@ echo 'echo ""' >> $scriptname
 echo 'echo ""' >> $scriptname
 
 params=$scriptname
-if [ -n $"$6" ]; then
-    raw_param=$6
+if [ -n $"$additions" ]; then
+    raw_param=$additions
     wait_jb=`sed -nr 's/^.*-wait=(\S*)\s?.*$/\1/p' <<< $raw_param`
     arrays=`sed -nr 's/^.*-array=(\S*)\s?.*$/\1/p' <<< $raw_param`
     log=`sed -nr 's/^.*-log=(\S*)\s?.*$/\1/p' <<< $raw_param`
