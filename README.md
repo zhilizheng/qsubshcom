@@ -15,6 +15,8 @@ Note: the original qsubshcom script referenced a little portion of code from QBI
 If you find some bugs, you can create an issue here. I will fix it if I have time. 
 
 ### update:
+Nov 28, 2017: Add support of QSUBSHCOM_EXTRAS variables. You can put cluster dependant variable here, such as put export QSUBSHCOM_EXTRAS="-acct=UQ-IMB-CNSG" into your ~/.bashrc. These variables will append into the submission task in qsubshcom automatically. Note: QSUBSHCOM_EXTRAS will overwrite the 6th parameters in qsubshcom, not put too much variables here.  
+
 Nov 27, 2017: Change the manner to determine the grid engine, as some cluster has multiple grid engine; remove the default account (UQ-IMB-***), we should add -acct=ACCOUNT_NAME to specify, as it is different in each cluster; -ntype can't work properly, it may have been obsoleted.
 
 Sep 21, 2017: Add TRI cluster support
