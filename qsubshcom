@@ -150,6 +150,7 @@ echo -e "cat << 'EOF' \n PARAM to here: $@ \nEOF" >> $scriptname
 echo 'echo ""' >> $scriptname
 echo 'echo ========QSUB STD out========' >> $scriptname
 
+echo "export OMP_NUM_THREADS=$2" >> $scriptname
 sed "s/\$\?{TASK_ID}/\${TASK_ID}/g" <<< $1 | sed "s/\s*|;\s*/\n/g" >> $scriptname 
 echo 'echo =========QSUB STD end=========' >> $scriptname
 echo 'echo ""' >> $scriptname
