@@ -10,11 +10,14 @@ Author: Zhili
 
 License: MIT License (See README.md and LICENSE)
 
-Note: the original qsubshcom script referenced a little portion of code from QBI IT. However, the call routines are rewritted totally. You shall pay attention to the parameter changes, and much more robust enhancement on the job dependency and cluster type dedution.
+Note: the original qsubshcom script referenced a little portion of code from QBI IT. However, the call routines are rewrote totally. You shall pay attention to the parameter changes, and much more robust enhancement on the job dependency and cluster type dedution.
 
 If you find some bugs, you can create an issue here. I will fix it if I have time. 
 
 ### update:
+
+Apr 12, 2018: Add openMP env variable, that can read from program which support. GCTA 1.91.4 support this feature, it would run in multiple thread from the number of cores specified in this script even without the --thread-num.
+
 Nov 28, 2017: Add support of QSUBSHCOM_EXTRAS variables. You can put cluster dependant variable here, such as put export QSUBSHCOM_EXTRAS="-acct=UQ-IMB-CNSG" into your ~/.bashrc. These variables will append into the submission task in qsubshcom automatically. Note: QSUBSHCOM_EXTRAS will overwrite the 6th parameters in qsubshcom, not put too much variables here.  
 
 Nov 27, 2017: Change the manner to determine the grid engine, as some cluster has multiple grid engine; remove the default account (UQ-IMB-***), we should add -acct=ACCOUNT_NAME to specify, as it is different in each cluster; -ntype can't work properly, it may have been obsoleted.
