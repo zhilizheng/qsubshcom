@@ -4,6 +4,7 @@
 # Author Zhili:  zhilizheng@outlook.com
 # License: MIT License (See README.MD)
 
+# Easy job submitter for PBS, Torque, SGE and Slurm
 # usage:   qsubshcom command["one command |; two command"] num_CPU[1] memory[2G] task_name wait_time[1:00:00] other_params
 # command: {TASK_ID} for job array index, we'd like to use "" to surround the command
 # if call qsubshcom directly, then the $ should be escaped with \$ ;
@@ -21,8 +22,7 @@
 # -acct=account_name, specify the account name
 # -queue=queue type. Specify the queue type
 # You can put any other cluster engine supported parameters here, it will pass directly into the qsub command. e.g. -l host=host1:host2
-# Note: these parameters may not support in other cluster engine.
-# example: "-wait=123:124:125 -array=1-2 -ntype=Special -l host=host1:host2"
+# example: "-wait=123:124:125 -array=1-2 -l host=host1:host2"
 
 # qsubshcom "awk -v OFS='\t' '{print \$1,\$2}' <<< 'test test2' > {TASK_ID} |; echo -e \"\${TASK_ID}\nhello\" " 1 1G test2 10:00:00 "-array=1-2"
 #===============================================================================
@@ -59,11 +59,16 @@ if [ -z "$GE" ]; then
     if [[ -n "$ge_file" ]]; then
         GE="SGE"
     fi
+
+    slm_file=`command -v sbatch`
+    if [[ -n "slm_file" ]]; then
+	 GE="SLM"
+    fi
 fi
 
 if [ -z "$GE" ]; then
     echo "Sorry, we can't recognize the grid engine"
-    echo "You can use -ge=TOR|SGE|PBS in the 6th parameter to specify"
+    echo "You can use -ge=TOR|SGE|PBS|SLM in the 6th parameter to specify"
     exit 1
 fi
 
@@ -74,7 +79,7 @@ if [ -z "$mem_unit" ]; then
     echo "Sorry, you have to specify the memory unit (3 parameter) in GB or MB or KB"
     exit 1
 fi
-if [ "$GE" == "TOR" ]; then
+if [ "$GE" == "TOR" ] || [ "$GE" == "SLM" ]; then
     MEM_UNIT="${mem_unit^^}"
     if [ "${MEM_UNIT: -1}" != "B" ]; then
         MEM_UNIT="${MEM_UNIT}B"
@@ -124,6 +129,21 @@ if [ "$GE" == "PBS" ] || [ "$GE" == "TOR" ]; then
     fi
 fi
 
+if [ "$GE" == "SLM" ]; then
+    echo "#SBATCH --job-name=${name}" >> $scriptname
+    echo "#SBATCH --ntasks=1" >> $scriptname
+    echo "#SBATCH --cpus-per-task=$2" >> $scriptname
+    echo "#SBATCH --mem=${mem}${mem_unit}" >> $scriptname
+    echo "#SBATCH --time=$5" >> $scriptname
+    if [[ -n "$queue" ]]; then
+        echo "#SBATCH --partition $queue" >> $scriptname
+    fi	
+    if [[ -n "$account" ]]; then
+	echo "#SBATCH -A $account" >> $scriptname
+    fi
+fi
+
+
 if [ "$GE" == "PBS" ]; then
     if [[ "$additions" =~ ^.*-array.*$ ]]; then
         echo "#PBS -o ./job_reports/${name}_${today}_A^array_index^.log" >> $scriptname
@@ -141,9 +161,24 @@ if [ "$GE" == "TOR" ]; then
     #echo "#PBS -l nodes=1:ppn=$2${ntype},pmem=$mem_core$mem_unit" >> $scriptname
 fi
 
+if [ "$GE" == "SLM" ]; then
+    if [[ "$additions" =~ ^.*-array.*$ ]]; then
+        echo "#SBATCH -o ./job_reports/${name}_${today}_A%a.log" >> $scriptname
+        echo "#SBATCH -e ./job_reports/${name}_${today}_A%a.err" >> $scriptname
+    else
+        echo "#SBATCH -o ./job_reports/${name}_${today}.log" >> $scriptname
+        echo "#SBATCH -e ./job_reports/${name}_${today}.err" >> $scriptname
+    fi
+fi
+	
+
 if [ "$GE" == "PBS" ] || [ "$GE" == "TOR" ]; then
     echo 'cd $PBS_O_WORKDIR' >> $scriptname
     echo 'export TASK_ID=${PBS_ARRAY_INDEX}' >> $scriptname
+fi
+
+if [ "$GE" == "SLM" ]; then
+    echo 'export TASK_ID=${SLURM_ARRAY_TASK_ID}' >> $scriptname
 fi
 
 echo -e "cat << 'EOF' \n PARAM to here: $@ \nEOF" >> $scriptname
@@ -211,6 +246,23 @@ if [ -n $"$additions" ]; then
                 params="-W depend=afterok$wait_list $params"
             fi
         fi
+    elif [ "$GE" == "SLM" ]; then
+	if [[ -n "$arrays" ]]; then
+	    params="--array=$arrays $params"
+	fi
+        if [[ -n "$wait_jb" ]]; then
+            wait_list=""
+            IFS=':' read -ra jobs <<< "$wait_jb"
+            for job in "${jobs[@]}";do
+                if squeue -j $job | grep -q $job;then
+                    wait_list="$wait_list:$job"
+                fi
+            done
+            if [[ -n "$wait_list" ]]; then
+                params="--dependency=afterok$wait_list $params"
+            fi
+        fi
+            
     fi
     params="$remain_param $params"
 fi
@@ -218,7 +270,11 @@ echo 'echo ................Trans params..........' >> $scriptname
 echo -e "cat << 'EOF' \n $params \nEOF" >> $scriptname
 echo 'echo ..........STD error begin.....' >> $scriptname
 
-output=`qsub $params`
+if [ "$GE" == "SLM" ]; then
+    output=`sbatch $params`
+else
+    output=`qsub $params`
+fi
 
 if [ -z "$log" ]; then
     log="qsub.$todayLOG.log"
@@ -244,6 +300,11 @@ fi
 if [ "$GE" == "TOR" ]; then
    echo $output | tail -n 1 | sed 's/\n//'
    echo $output | tail -n 1 >> $log
+fi
+
+if [ "$GE" == "SLM" ]; then
+    echo $output | sed -r 's/.* ([0-9]*).*/\1/g'
+    echo $output >> $log
 fi
 echo "QSUB_PARAMS: $@" >> $log
 echo "QSUB_SUBMIT: $params" >> $log

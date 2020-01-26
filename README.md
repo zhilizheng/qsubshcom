@@ -1,8 +1,8 @@
 # qsubshcom
 
-The job submitter for PBS Pro (IMB), Torque (Tinaroo, Flashlite) and SGE (QBI). 
+An easy job submitter for PBS Pro (IMB), Torque (Tinaroo, Flashlite), SGE (old QBI) and Slurm(new QBI); it works on all clusters based on these system, not for UQ only.
 
-qsubshcom will determine the cluster type automatically, and call the correct qsub command. 
+qsubshcom will determine the cluster type automatically, and call the correct submit command. 
 
 It can run across all of these cluster, you don't have to rewrite the script again and again in order to run on different cluster.
      
@@ -16,22 +16,24 @@ If you find some bugs, you can create an issue here. I will fix it if I have tim
 
 ### update:
 
+Jan 26, 2020: Add Slurm support.
+
 Apr 12, 2018: Add openMP env variable, that can read from program which support. GCTA 1.91.4 support this feature, it would run in multiple thread from the number of cores specified in this script even without the --thread-num.
 
-Nov 28, 2017: Add support of QSUBSHCOM_EXTRAS variables. You can put cluster dependant variable here, such as put export QSUBSHCOM_EXTRAS="-acct=UQ-IMB-CNSG" into your ~/.bashrc. These variables will append into the submission task in qsubshcom automatically. Note: QSUBSHCOM_EXTRAS will overwrite the 6th parameters in qsubshcom, not put too much variables here.  
+Nov 28, 2017: Add support of QSUBSHCOM\_EXTRAS variables. You can put cluster dependant variable here, such as put export QSUBSHCOM\_EXTRAS="-acct=UQ-IMB-CNSG" into your ~/.bashrc. These variables will append into the submission task in qsubshcom automatically. Note: QSUBSHCOM\_EXTRAS will overwrite the 6th parameters in qsubshcom, not put too much variables here.  
 
-Nov 27, 2017: Change the manner to determine the grid engine, as some cluster has multiple grid engine; remove the default account (UQ-IMB-***), we should add -acct=ACCOUNT_NAME to specify, as it is different in each cluster; -ntype can't work properly, it may have been obsoleted.
+Nov 27, 2017: Change the manner to determine the grid engine, as some cluster has multiple grid engine; remove the default account (UQ-IMB-\*\*\*), we should add -acct=ACCOUNT\_NAME to specify, as it is different in each cluster; -ntype can't work properly, it may have been obsoleted.
 
 Sep 21, 2017: Add TRI cluster support
 
-Sep 18, 2017:  update ${TASK_ID} that can be find in the script run by qsubshcom "bash your_scrip.sh" or qsubshcom "sh your_script.sh"...
+Sep 18, 2017:  update ${TASK\_ID} that can be find in the script run by qsubshcom "bash your\_scrip.sh" or qsubshcom "sh your\_script.sh"...
 
 ## usage
 Download the qsubshcom, and put it into your $PATH, e.g. $HOME/bin, chmod 700 qsubshcom
 
-qsubshcom command["one command |; two command"] num_CPU[1] total_memory[2G] task_name wait_time[1:00:00] other_params
+qsubshcom command["one command |; two command"] num\_CPU[1] total\_memory[2G] task\_name wait\_time[1:00:00] other\_params
 
-If you lots of old codes already, you can run it: qsubshcom "bash Your_script.sh" 2 4G you_task_name 10:00:00 ""    .  qsubshcom will submit the command in Your_script.sh to the computing node with 2 CPU core, 4GB memory (in total, not per CPU core), and a walltime of 10 hours.  The PBS or SGE commands in Your_script.sh will be ignored (such as ${PBS_ARRAY_INDEX}), so you'd better remove the cluster dependent variables, it will be replaced by empty unexpectly!!! If you run the job array in your script, you can relace the ${PBS_ARRY_INDEX} to ${TASK_ID}, it will works on all cluster. 
+If you lots of old codes already, you can run it: qsubshcom "bash Your\_script.sh" 2 4G you\_task\_name 10:00:00 ""    .  qsubshcom will submit the command in Your\_script.sh to the computing node with 2 CPU core, 4GB memory (in total, not per CPU core), and a walltime of 10 hours.  The PBS or SGE commands in Your\_script.sh will be ignored (such as ${PBS\_ARRAY\_INDEX}), so you'd better remove the cluster dependent variables, it will be replaced by empty unexpectly!!! If you run the job array in your script, you can relace the ${PBS\_ARRY\_INDEX} to ${TASK\_ID}, it will works on all cluster. 
 
 example:
 ```{bash}
@@ -66,7 +68,7 @@ temp_command="awk '{print \$1, \$2} test.txt > test2.txt"
 qsubshcom "$temp_command" 1 1G test_awk 00:00:05 ""
 ```
 ### memory
-It will be rounded up into larger one in Torque and SGE if MEM/num_CPU is not integer, such as 
+It will be rounded up into larger one in Torque and SGE if MEM/num\_CPU is not integer, such as 
 ```
 qsubshcom "echo hello" 3 5G test 00:00:05 "" 
 ```
@@ -78,10 +80,10 @@ Just use 1G, 10M without B, some cluster does not support GB or MB.
 ### other_params:                                                                                                                                                                                
 * -wait=JOB1:JOB2:JOB3 wait these jobs finished. qsubshcom will determine these JOB ID exist or not.                                                                                                                                             
 * -array=1-100:2   create a job array that run task 1 3 5 7 ... 99                                                                                                                             
-* -log=log_name, log the job submission into log file. default is qsub_time.log                                                                                                                
-* -ntype=node_type, specify the node type into node_type (Torque only, Tinaroo: -ntype=Special to use group special queue). Note: this flag can't work in current cluster setup.                                                                                                                         
-* -queue=queue_type. Specify the queue type                                                                                                                                                    
-* -acct=ACCOUNT_NAME. Specify the account, equal to "#PBS -A ACCOUNT_NAME"
+* -log=log\_name, log the job submission into log file. default is qsub\_time.log                                                                                                                
+* -ntype=node\_type, specify the node type into node_type (Torque only, Tinaroo: -ntype=Special to use group special queue). Note: this flag can't work in current cluster setup.                                                                                                                         
+* -queue=queue\_type. Specify the queue type                                                                                                                                                    
+* -acct=ACCOUNT\_NAME. Specify the account, equal to "#PBS -A ACCOUNT_NAME"
 
 * You can put any other cluster engine supported parameters here, it will pass directly into the qsub command. e.g. -l host=host1:host2                                                        
 Note: these parameters specified by yourself (such as -l host) may not be supported in other cluster engine. We shall avoid using this types of parameters
