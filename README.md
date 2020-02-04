@@ -2,7 +2,7 @@
 
 An easy job submitter for PBS Pro (IMB), Torque (Tinaroo, Flashlite), SGE (old QBI) and Slurm(new QBI); it works across all clusters based on these system, not for UQ only. 
 
-qsubshcom will determine the cluster type automatically, and call the correct submit command. You don't have to rewrite the script again and for different cluster.
+qsubshcom will determine the cluster type automatically, and call the correct submit command. You don't have to rewrite the script again and again for different clusters.
 
 Author: Zhili
 
