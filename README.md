@@ -14,9 +14,9 @@ If you find some bugs, you can create an issue here. I will fix it if I have tim
 
 Jan 26, 2020: Added Slurm support.
 
-Apr 12, 2018: Added openMP env variable. GCTA from 1.91.4 support this feature, it would run in multiple thread from the number of cores specified in this script even without the --thread-num.
+Apr 12, 2018: Exposed the number of cores to openMP OMP_NUM_THREADS variable. GCTA from 1.91.4 supports this feature.
 
-Nov 28, 2017: Added the support of QSUBSHCOM\_EXTRAS variables. You can put cluster dependant variable here, such as put export QSUBSHCOM\_EXTRAS="-acct=UQ-IMB-CNSG" into your ~/.bashrc (e.g. for RCC clusters). These variables will be appended to qsubshcom command automatically. Note: QSUBSHCOM\_EXTRAS will overwrite the 6th parameters in qsubshcom, do not put too many variables here.  
+Nov 28, 2017: Added the support of QSUBSHCOM\_EXTRAS variables. You can put cluster dependant variables here, such as put export QSUBSHCOM\_EXTRAS="-acct=UQ-IMB-CNSG" into your ~/.bashrc (e.g. for RCC clusters). These variables will be appended to qsubshcom command automatically. Note: QSUBSHCOM\_EXTRAS will overwrite the 6th parameters in qsubshcom, do not put too many variables here.  
 
 Nov 27, 2017: Changed the manner to determine the grid engine, as some cluster has multiple grid engine; remove the default account (UQ-IMB-\*\*\*), we should add -acct=ACCOUNT\_NAME to specify, as this is different in each cluster; -ntype can't work properly, it is obsoleted.
 
@@ -96,7 +96,7 @@ qsubshcom "awk -v OFS='\t' '{print \$1,\$2}' <<< 'test test2' > {TASK_ID}" " 1 1
 qsubshcom "bash ./test.sh" 1 1G test_script 00:05:00 ""
 ```
 
-Here is a exmaple to run GWAS with qsubshcom
+Here is an exmaple to run GWAS with qsubshcom
 ```
 geno=A
 # GRM
