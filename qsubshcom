@@ -61,7 +61,7 @@ if [ -z "$GE" ]; then
     fi
 
     slm_file=`command -v sbatch`
-    if [[ -n "slm_file" ]]; then
+    if [[ -n "$slm_file" ]]; then
 	 GE="SLM"
     fi
 fi
@@ -269,7 +269,6 @@ fi
 echo 'echo ................Trans params..........' >> $scriptname
 echo -e "cat << 'EOF' \n $params \nEOF" >> $scriptname
 echo 'echo ..........STD error begin.....' >> $scriptname
-
 if [ "$GE" == "SLM" ]; then
     output=`sbatch $params`
 else
@@ -304,8 +303,9 @@ fi
 
 if [ "$GE" == "SLM" ]; then
     echo $output | sed -r 's/.* ([0-9]*).*/\1/g'
-    echo $output >> $log
+    echo $output | sed -r 's/.* ([0-9]*).*/\1/g' >> $log
 fi
+
 echo "QSUB_PARAMS: $@" >> $log
 echo "QSUB_SUBMIT: $params" >> $log
 echo "-----------------------------" >> $log

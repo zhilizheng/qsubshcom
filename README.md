@@ -12,6 +12,8 @@ If you find some bugs, you can create an issue here. I will fix it if I have tim
 
 ### Update:
 
+Feb 16, 2020: Fixed a bug when choosing a cluster engine.
+
 Jan 26, 2020: Added Slurm support.
 
 Apr 12, 2018: Exposed the number of cores to openMP OMP_NUM_THREADS variable. GCTA from 1.91.4 supports this feature.
@@ -74,13 +76,17 @@ It will allocate 6G memory in total in Torque or SGE (not 6G each CPU!), but 5G 
 
 Note: the memory limitation here is virtual memory enforced by some cluster engine.                                            
 Just use 1G, 10M without B, some cluster does not accept GB or MB.                                                                       
-### Other_params:                                                                                                                                                                                
+
+### Other_params:
+
 * -wait=JOB1:JOB2:JOB3 wait these jobs to finish, and then run. qsubshcom will determine these JOB ID exist or not.                                                                                                                                         
 * -array=1-100:2   create a job array that run task 1 3 5 7 ... 99                                                                                                                             
 * -log=log\_name, log the job submission into log file. default is qsub\_time.log                                                                                                                
 * -ntype=node\_type, specify the node type to node_type (Torque only, Tinaroo: -ntype=Special to use group special queue). Note: this flag is obsoleted.                                                                                                                         
 * -queue=queue\_type. Specify the running queue.                                                                                                                                                  
 * -acct=ACCOUNT\_NAME. Specify the account, equivalent to "#PBS -A ACCOUNT\_NAME".
+
+* -ge=CLUSTER\_ENGINE. Specify the type of cluster engine manually, could be PBS(for PBSpro), SGE(Sun grid engine), TOR(Torque), SLM (Slurm). We don't need to specify this flag usually, it will be determined by your cluster automatically.
 
 * You can put any other cluster engine supported parameters here, it will pass directly into the qsub command. e.g. -l host=host1:host2                                                        
 Note: these parameters specified by yourself (such as -l host) may not be supported in other cluster engine. We shall avoid using this type of parameters if not necessary.
