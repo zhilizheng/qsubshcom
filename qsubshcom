@@ -106,7 +106,7 @@ if [ "$GE" == "SGE" ]; then
     echo "#$ -o ./job_reports/" >> $scriptname
     echo "#$ -cwd" >> $scriptname
     echo "#$ -V" >> $scriptname
-    echo "#$ -pe onehost $2" >> $scriptname
+    echo "#$ -pe thread $2" >> $scriptname
     echo "#$ -l h_vmem=${mem_core}${mem_unit}" >> $scriptname
     echo 'export TASK_ID=${SGE_TASK_ID}' >> $scriptname
     #echo "#$ -l time=$5" >> $scriptname
