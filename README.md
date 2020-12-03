@@ -11,6 +11,7 @@ License: MIT License (See README.md and LICENSE)
 If you find some bugs, you can create an issue here. I will fix it if I have time. 
 
 ### Update:
+Dec 3,  2020: Update the default SGE PE, SGE PE shall be changed if the admin had a different setting
 
 Feb 16, 2020: Fixed a bug when choosing a cluster engine.
 
