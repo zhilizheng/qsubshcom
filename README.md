@@ -76,7 +76,30 @@ qsubshcom "echo hello" 3 5G test 00:00:05 ""
 It will allocate 6G memory in total in Torque or SGE (not 6G each CPU!), but 5G in the other cluster system.
 
 Note: the memory limitation here is virtual memory enforced by some cluster engine.                                            
-Just use 1G, 10M without B, some cluster does not accept GB or MB.                                                                       
+Just use 1G, 10M without B, some cluster does not accept GB or MB.
+#### Diagnose cpu and memory efficiency
+```
+  mainPath=$(pwd)
+  errPath="${mainPath}/job_reports/"
+  ## benchmark
+  for errFile in ${errPath}/*.err; do
+      tmpProp=$(grep -E '^mem Efficiency*' ${errFile} | awk -F ' ' '{print $3}')
+      errFileMax=${errFile}
+      break
+  done
+
+  for errFile in ${errPath}/*.err; do
+      memProp=$(grep -E '^mem Efficiency*' ${errFile} | awk -F ' ' '{print $3}')
+      if (( $(echo "$memProp > $tmpProp" |bc -l) )); then
+          tmpProp=$memProp
+          echo ${memProp}
+          errFileMax=${errFile}
+          ReqMem=$(grep -E '^ResourcesRequested: mem=([0-9\.\-]*)gb' ${errFile}| sed 's/.*mem=\([0-9]*\)gb.*/\1/' )
+      fi
+  done
+  echo "The max memory is used in file ${errFileMax}"
+  cat ${errFileMax}
+```
 
 ### Other_params:
 
