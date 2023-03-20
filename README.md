@@ -34,7 +34,7 @@ qsubshcom command["one command |; two command"] num\_CPU[1] total\_memory[2G] ta
 
 qsubshcom will go to the folder where you run the qsubshcom command, thus the cd WORK_DIR is not necessary. It will return the job id, and log the commands and job id to qsub_TIME.log in your working folder. All job running information from the cluster goes to job_reports folder, named by jobName\_time...
 
-If you have lots of existing codes, you can run by: qsubshcom "bash Your\_script.sh" 2 4G you\_task\_name 10:00:00 ""     qsubshcom will submit the command in Your\_script.sh to a node with 2 CPU core, 4GB memory (in total, not per CPU core), and a walltime of 10 hours.  The PBS or SGE commands in Your\_script.sh will be ignored (such as \${PBS\_ARRAY\_INDEX}), so cluster dependent variables should be removed, it may be replaced by empty string unexpectly on some other cluster system!!! If you run the job array in your script, you can relace the \${PBS\_ARRY\_INDEX} to ${TASK\_ID}, it will work on all clusters. 
+If you have lots of existing codes, you can run by: qsubshcom "bash Your\_script.sh" 2 4G you\_task\_name 10:00:00 ""     qsubshcom will submit the command in Your\_script.sh to a node with 2 CPU core, 4GB memory (in total, not per CPU core), and a walltime of 10 hours.  The PBS or SGE commands in Your\_script.sh will be ignored (such as \\${PBS\_ARRAY\_INDEX}), so cluster dependent variables should be removed, it may be replaced by empty string unexpectly on some other cluster system!!! If you run the job array in your script, you can relace the \${PBS\_ARRY\_INDEX} to \${TASK\_ID}, it will work on all clusters. 
 
 example:
 ```{bash}
