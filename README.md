@@ -2,11 +2,11 @@
 
 A simple job submitter for PBS Pro, Torque, SGE and Slurm.
 
-qsubshcom will find the cluster type automatically, and call the correct submit command without writting dialect (#PBS #SBATCH). It has a robust log system (e.g., all command you run, time), straightforward job dependency declaration (submit multiple job at same time and run some first), and real-time resource consumption monitor if not provided by your cluster. You don't have to rewrite the script again and again and struggling with job orders for different clusters.
+qsubshcom will find the cluster type automatically, and call the correct submit command without writting dialect (e.g., #PBS, #SBATCH). It has a robust log system (e.g., command history, time, job id), straightforward job dependency declaration (submit multiple job at same time and run some first), and real-time resource consumption monitor if not provided by your cluster. You don't have to rewrite the script again and again and struggle with job orders for different clusters.
 
-qsubshcom has no dependent library in Linux system (if you have batch system installed). Download the qsubshcom, chmod +x qsubshcom, put it into your PATH, then it's ready to go. 
+qsubshcom has no dependent library in Linux system (if you have batch installed by your system admin). Download the qsubshcom, `chmod +x qsubshcom`, put it into your PATH, then it's ready to go. 
 
-Author: Zhili; 
+Author: Zhili.
 License: MIT, see LICENSE; no warrenty, no citaion needed.
 
 ## Installation
