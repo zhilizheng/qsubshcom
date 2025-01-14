@@ -6,7 +6,7 @@ qsubshcom will find the cluster type automatically, and call the correct submit 
 
 qsubshcom has no dependent library in Linux system (if you have batch system installed). Download the qsubshcom, chmod +x qsubshcom, put it into your PATH, then it's ready to go. 
 
-Author: Zhili
+Author: Zhili; 
 License: MIT, see LICENSE; no warrenty, no citaion needed.
 
 ## Installation
