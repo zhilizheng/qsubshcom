@@ -1,10 +1,10 @@
 #!/bin/bash
 #===============================================================================
-# Job submitter for PBS Pro, Toruqe, SGE
+# Job submitter for PBS Pro, Toruqe, SGE and Slurm
 # Author Zhili:  zhilizheng@outlook.com
 # License: MIT License (See README.MD)
 
-# Easy job submitter for PBS, Torque, SGE and Slurm
+# Easy simple submitter for PBS, Torque, SGE and Slurm
 # usage:   qsubshcom command["one command |; two command"] num_CPU[1] memory[2G] task_name wait_time[1:00:00] other_params
 # command: {TASK_ID} for job array index, we'd like to use "" to surround the command
 # if call qsubshcom directly, then the $ should be escaped with \$ ;
@@ -143,11 +143,12 @@ if [ "$GE" == "SLM" ]; then
     fi
 fi
 
-
+isArray=0
 if [ "$GE" == "PBS" ]; then
     if [[ "$additions" =~ ^.*-array.*$ ]]; then
         echo "#PBS -o ./job_reports/${name}_${today}_A^array_index^.log" >> $scriptname
         echo "#PBS -e ./job_reports/${name}_${today}_A^array_index^.err" >> $scriptname
+        isArray=1
     else
         echo "#PBS -o ./job_reports/${name}_${today}.log" >> $scriptname
         echo "#PBS -e ./job_reports/${name}_${today}.err" >> $scriptname
@@ -165,6 +166,7 @@ if [ "$GE" == "SLM" ]; then
     if [[ "$additions" =~ ^.*-array.*$ ]]; then
         echo "#SBATCH -o ./job_reports/${name}_${today}_A%a.log" >> $scriptname
         echo "#SBATCH -e ./job_reports/${name}_${today}_A%a.err" >> $scriptname
+        isArray=1
     else
         echo "#SBATCH -o ./job_reports/${name}_${today}.log" >> $scriptname
         echo "#SBATCH -e ./job_reports/${name}_${today}.err" >> $scriptname
@@ -174,16 +176,106 @@ fi
 
 if [ "$GE" == "PBS" ] || [ "$GE" == "TOR" ]; then
     echo 'cd $PBS_O_WORKDIR' >> $scriptname
+    echo 'export JOB_ID=${PBS_JOBID}' >> $scriptname
     echo 'export TASK_ID=${PBS_ARRAY_INDEX}' >> $scriptname
 fi
 
 if [ "$GE" == "SLM" ]; then
+    echo 'export JOB_ID=${SLURM_JOB_ID}' >> $scriptname
     echo 'export TASK_ID=${SLURM_ARRAY_TASK_ID}' >> $scriptname
 fi
+
+echo 'echo "Job ID: ${JOB_ID}"' >> $scriptname
+echo 'echo "Array ID: ${TASK_ID}"' >> $scriptname
 
 echo -e "cat << 'EOF' \n PARAM to here: $@ \nEOF" >> $scriptname
 echo 'echo ""' >> $scriptname
 echo 'echo ========QSUB STD out========' >> $scriptname
+
+## the monitor
+if [ $isArray -eq 1 ]; then
+    echo "mlog=\"./job_reports/${name}_${today}_A\${TASK_ID}.mon\""  >> $scriptname
+else
+    echo "mlog=\"./job_reports/${name}_${today}.mon\""  >> $scriptname
+fi
+echo "tMon=10" >> $scriptname
+
+cat <<'EOF' >> $scriptname
+pspid="ps --no-headers -o pid,comm --ppid"
+get_child_pids() {
+  local parent_pid="$1"
+  local children=$(pgrep -P "$parent_pid")
+  if [ -n "$children" ]; then
+    for child in $children; do
+      echo "$child"
+      get_child_pids "$child"
+    done
+  fi
+}
+
+sum_res_pids(){
+    local runid1="$1"
+    local temp_file=$(mktemp)
+    local pids=( $runid1 $(get_child_pids $runid1) )
+
+    local etime=$(ps --no-header -o etimes -p $runid1)
+
+    for curid1 in "${pids[@]}"; do
+        local pp=$(ps --no-header -o cputimes,pcpu,rss,vsz -p $curid1)
+        local vmpeak=$(grep "VmHWM" /proc/$curid1/status | awk '{print $2}')
+        #echo -e "$curid1\t$pp\t$vmpeak"
+        echo -e "$pp\t$vmpeak" >> $temp_file
+    done
+
+    res=$(awk -vOFS='\t' '{for(i=1;i<=NF;i++) sum[i]+=$i} END {for(i=1;i<=NF;i++) printf "%d ", sum[i]; print ""}' $temp_file)
+    rm $temp_file
+    echo -e "$etime\t$res"
+}
+
+monitor(){
+    local logfile="$2"
+    local mid=$BASHPID
+    local curid=$$
+    local ppid=$PPID
+    echo "Task start: $(date +%T)" > $logfile
+    echo "\$BASHPID: $mid" >> $logfile
+    echo "\$\$: $curid" >> $logfile
+    echo "\$PPID: $ppid" >> $logfile
+    echo "" >> $logfile
+
+    echo -e "Time\tELAPSED\tTIME\t%CPU\tRSS\tVSZ\tPMEM" >> $logfile
+
+
+    while true; do
+        local timeNow="$(date +%T)"
+        local parJobChild=$($pspid $ppid)
+        local countChild=$(echo $parJobChild | sed '/^\s*$/d' | wc -l)
+        # $($$) will expand in the current shell
+        if [ "$countChild" -eq 0 ]; then
+            echo "" >> $logfile
+            echo "Task finished: $(date +%T)" >> $logfile
+            break
+        fi
+
+        #$pspid $curid >> $logfile
+        local runct=$($pspid $curid | grep -vw $mid | sed '/^\s*$/d' | wc -l)
+        if [ "$runct" -eq 1 ]; then
+            local runid=$($pspid $curid | grep -vw $mid | awk '{print $1}')
+            echo -e "$timeNow\t$(sum_res_pids $runid)" >> $logfile
+        elif [ "$runct" -eq 0 ]; then
+            echo "$timeNow: No job" >> $logfile
+        else
+            echo -n "$timeNow: multiple job" >> $logfile
+            $pspid $curid >> $logfile
+        fi
+
+        sleep $1
+    done
+}
+
+monitor $tMon $mlog &
+
+EOF
 
 echo "export OMP_NUM_THREADS=$2" >> $scriptname
 sed "s/\$\?{TASK_ID}/\${TASK_ID}/g" <<< $1 | sed "s/\s*|;\s*/\n/g" >> $scriptname 
