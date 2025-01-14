@@ -1,10 +1,10 @@
 # qsubshcom
 
-An simple job submitter for PBS Pro, Torque, SGE and Slurm.
+A simple job submitter for PBS Pro, Torque, SGE and Slurm.
 
 qsubshcom will find the cluster type automatically, and call the correct submit command without writting dialect (#PBS #SBATCH). It has a robust log system (e.g., all command you run, time), straightforward job dependency declaration (submit multiple job at same time and run some first), and real-time resource consumption monitor if not provided by your cluster. You don't have to rewrite the script again and again and struggling with job orders for different clusters.
 
-qsubshcom don't have any dependent libraries in Linux system. Download the qsubshcom, chmod +x qsubshcom, put it into your PATH, then it's ready to go. 
+qsubshcom has no dependent library in Linux system (if you have batch system installed). Download the qsubshcom, chmod +x qsubshcom, put it into your PATH, then it's ready to go. 
 
 Author: Zhili
 
@@ -126,7 +126,7 @@ Example: "-wait=123:124:125 -array=1-2 -l host=host1:host2"
 ## Update:
 Jan 14, 2025: Added the real-time job monitor, it will record the resource consumption every 10 seconds without any code, e.g., runtime, %CPU, physical memory (RSS), largest physical memory (PMEM)) in the background for all the tasks started by qsubshcom (logged in ./job\_reports/JOB\_NAME\_timeXXX.mon)
 
-Dec 3,  2020: Update the default SGE PE, SGE PE shall be changed if the admin had a different setting
+Dec 3,  2020: Updated the default SGE PE, SGE PE shall be changed if the admin had a different setting
 
 Feb 16, 2020: Fixed a bug when choosing a cluster engine.
 
