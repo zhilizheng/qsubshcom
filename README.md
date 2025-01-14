@@ -91,19 +91,18 @@ qsubhcom "Rscript test.R {TASK_ID}" 1 2G enrich 10:00:00 "-array=$chrs -wait=$pi
 If you would like to pass some special character into the job scripts directly, they shall be escaped, or it would be interpretd on the head node, not the working nodes. such as $  " . Store the variable in a temp variable first, both $ and other special vars shall use just single \ to escape;
 
 ```{bash}
-temp_command="awk '{print \$1, \$2} test.txt > test2.txt"
+temp_command="awk '{print \$1, \$2}' test.txt > test2.txt"
 qsubshcom "$temp_command" 1 1G test_awk 00:00:05 ""
 ```
 
 ## Memory
-The memory requirements will be rounded up into larger one in Torque or SGE if MEM divided by num\_CPU is not an integer, such as 
-```
-qsubshcom "echo hello" 3 5G test 00:00:05 "" 
-```
-It will allocate 6G memory in total in Torque or SGE (not 6G each CPU!), but 5G in the other cluster system.
+Total memory requested, it's not the memory per CPU core. For example, `qsubshcom "echo hello" 3 5G test 00:00:05 ""`, will allocate 3 CPU core and 5GB memory in total for the task. 
 
-Note: the memory limitation here is virtual memory enforced by some cluster engine.                                            
-Just use 1G, 10M without B, some cluster does not accept GB or MB.                                                                       
+For Torque and SGE: the requested memory will be rounded up into larger one if MEM divided by num\_CPU is not an integer, previous command will allocate 6GB memory in total. 
+
+Note: the memory limitation here is peak physical memory in most cluster, but it's the "virtual memory" enforced by some admin (talk to your admin, it's not right setting).                                             
+
+The memory should be written without "B", e.g., 1G, 100M. Some cluster does not accept "GB" or "MB" (like Torque).                                                                       
 
 ## Other\_params:
 
@@ -141,4 +140,4 @@ Sep 21, 2017: Added TRI cluster support
 Sep 18, 2017: Passed ${TASK\_ID} to the scripts that run by qsubshcom "bash your\_scrip.sh" or qsubshcom "sh your\_script.sh"...
 
 ### Issues
-Report bug by issues tab
+Report bug in issues tab.
